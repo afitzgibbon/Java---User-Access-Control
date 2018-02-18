@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 /*
- * The Pasword class is used to store a password which is based on a SecurityPolicy. By default 
+ * The Password class is used to store a password which is based on a SecurityPolicy. By default 
  * SecurityPolicy is set to strict which enforces password rules and encryption. The plain text
  * password is stored in a character array and it's contents are destroyed once a secret password 
  * is created. The SecurityPolicy can be disabled, which may be useful for testing purposes but
