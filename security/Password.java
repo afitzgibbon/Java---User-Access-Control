@@ -11,7 +11,7 @@ import java.util.Date;
  * SecurityPolicy is set to strict which enforces password rules and encryption. The plain text
  * password is stored in a character array and it's contents are destroyed once a secret password 
  * is created. The SecurityPolicy can be disabled, which may be useful for testing purposes but
- * be warned that this feature will store the password in it's plain text form. The following 
+ * be warned that this feature will store the password in its plain text form. The following 
  * call will accomplish this;
  * 
  * 		Password.getSecurityPolicy.setStrict(false)
@@ -51,7 +51,7 @@ public class Password {
 	
 	/*
 	 * The change method will attempt to change the password to the char[] passed in. Internally
-	 * Password uses a CharArray which is a costume CharSequence required by SecurityPolicy. A
+	 * Password uses a CharArray which is a custom CharSequence required by SecurityPolicy. A
 	 * check is made to see if the history count has been modified which could happen with a 
 	 * SecurityPolicy update. It then pushes the current password into the history and attempts
 	 * to create the secret password via SecurityPolicy.encrypt(this).
