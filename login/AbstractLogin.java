@@ -4,9 +4,9 @@ import org.andy.security.Password;
 import org.andy.user.User;
 
 /*
- * AbstractLogin sets up the framework/protocol to communicate with a LoginServer implementation
- * via LoginRequest and LoginResponse objects. This is hidden from subclasses and therefore they
- * need not be concerned about it. Subclasses must provide implementation for the following:
+ * AbstractLogin sets up the protocol to communicate with a LoginServer via LoginRequest and 
+ * LoginResponse objects. This is transparent to subclasses and therefore they need not be 
+ * concerned about it. Subclasses must provide implementation for the following:
  *
  * 1. getUserInput()
  *    - how to obtain the user input is defined here (swing/fx/console)
