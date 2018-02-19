@@ -80,7 +80,9 @@ public class SecurityPolicy {
 	 */
 	public void encrypt(Password password) throws SecurityException {
 		Password.CharArray charArray = password.getCharArray();
-		this.validate(charArray); // verify plain text password is complient with rules
+		
+		if (password.isNew())
+			this.validate(charArray); // verify plain text password is complient with rules
 		
 		String secret;
 		if (getEncryptionAlgorithm() != null)
@@ -89,10 +91,12 @@ public class SecurityPolicy {
 			secret = charArray.toString(); // secret == password if no policy is in place
 		
 		// verify the secret password has not already been used
-		String[] history = password.getHistory();
-		for (int i = 0; i < history.length; i++) {
-			if (secret.equals(history[i]))
-				throw new SecurityException(WARNING + "Password exists in history");
+		if (password.isNew()) {
+			String[] history = password.getHistory();
+			for (int i = 0; i < history.length; i++) {
+				if (secret.equals(history[i]))
+					throw new SecurityException(WARNING + "Password exists in history");
+				}
 		}
 		
 		// no exceptions have been thrown and therefore password is valid
@@ -134,7 +138,7 @@ public class SecurityPolicy {
 		this.algorithm = algorithm;
 		if (algorithm == null) 
 			return;
-		else messageDigest = MessageDigest.getInstance(this.algorithm); // throws ex
+		else this.messageDigest = MessageDigest.getInstance(this.algorithm); // throws ex
 	}
 	public void setHistoryCount(int historyCount) { this.historyCount = historyCount; }
 	public void setMinimumLength(int minLength) { this.minLength = minLength; }
