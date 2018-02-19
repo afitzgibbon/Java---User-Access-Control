@@ -6,3 +6,6 @@ This repo is intended to be a collection of classes for User &amp; Password crea
 
 - user/User.java added
   - encapsulates user data
+
+- login/AbstractLogin.java, login/LoginRequest.java, login/LoginResponse.java, login/LoginServer.java added
+  - this is a simple framework/api to build login apps on
