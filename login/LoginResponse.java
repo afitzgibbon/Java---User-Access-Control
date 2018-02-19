@@ -3,7 +3,7 @@ package org.andy.login;
 import org.andy.user.User;
 
  /* 
-  * A LoginResponse is sent form a LoginServer implementation to an AbstractLogin object in 
+  * A LoginResponse is sent from a LoginServer implementation to an AbstractLogin object in 
   * response to a LoginRequest. If the login is validated, isValidated() will retrun true and
   * getUser() will return the appropriate User object. If isValidated() returns false,
   * getUser() will return null.
