@@ -7,10 +7,22 @@ import java.util.Arrays;
 import java.util.Date;
 
 /*
- * The Password class is used to store a password which is based on a SecurityPolicy. By default 
+ * A Password object is used to store a password which is governed by a SecurityPolicy. By default 
  * SecurityPolicy is set to strict which enforces password rules and encryption. The plain text
  * password is stored in a character array and it's contents are destroyed once a secret password 
- * is created. The SecurityPolicy can be disabled, which may be useful for testing purposes but
+ * is created. A Password object can be created in one of three ways;
+ * 
+ * 1. Password password = new Password(plainText)
+ *    - this constructor is used to create a temporary password that can be compared to a real
+ *      Password and verified ie. at login. This password bypasses all security checks and will
+ *      therefore not throw any exceptions.
+ * 2. Password password = new Password(plainText, isNew)
+ *    - this constructor is used when creating a password for the first time. ensure boolean
+ *      value for isNew is set to true.
+ * 3. Password password = new Password(secret, history, creationDate)
+ *    - this constructor is used when loading a password from some sort of persistence.
+ * 
+ * The SecurityPolicy can be disabled, which may be useful for testing purposes but
  * be warned that this feature will store the password in its plain text form. The following 
  * call will accomplish this;
  * 
@@ -27,17 +39,21 @@ public class Password {
 	private String[] history;
 	private String secret;
 	private boolean expired;
+	private boolean isNew;
 	
+	/* This constructor is called when creating a Password for verification purposes. */
+	public Password(char[] plainText) { this(plainText, false); }
 	/*
 	 * This constructor is called when creating new passwords. The history array is initialised
 	 * with null values. It then calls the change() method to set the password for the first time.
 	 */
-	public Password(char[] plainText) {
-		this.history = new String[this.getSecurityPolicy().getHistoryCount()];
+	public Password(char[] plainText, boolean isNew) {
+		this.setIsNew(isNew); // this flags whether or not to do security checking
+		this.setHistory(new String[this.getSecurityPolicy().getHistoryCount()]);
 		this.change(plainText); // use change method to set the password
 	}
 	/*
-	 * This constructor is called when creating passwords from persistance. Once the persisted
+	 * This constructor is called when creating passwords from persistence. Once the persisted
 	 * values are set it does an expiration check. The SecurityPolicy will determine if this 
 	 * password has expired based on the creation date or if the SecurityPolicy has been updated
 	 * and requires all passwords to be recreated under the new rules.
@@ -51,8 +67,8 @@ public class Password {
 	
 	/*
 	 * The change method will attempt to change the password to the char[] passed in. Internally
-	 * Password uses a CharArray which is a custom CharSequence required by SecurityPolicy. A
-	 * check is made to see if the history count has been modified which could happen with a 
+	 * Password uses a CharArray which is a CharSequence implementation required by SecurityPolicy.
+	 * A check is made to see if the history count has been modified which could happen with a 
 	 * SecurityPolicy update. It then pushes the current password into the history and attempts
 	 * to create the secret password via SecurityPolicy.encrypt(this).
 	 * SecurityPolicy will throw a SecurityException if it encounters any conflicts. If the secret
@@ -78,8 +94,9 @@ public class Password {
 		// if no exceptions are thrown...
 		this.getCharArray().clear();
 		this.setCreationDate(new Date());
+		this.setIsNew(false);
 	}
-	
+		
 	/* Password equality is determined by comparing the secret passwords. */
 	public boolean equals(Password password) { return equals(password.getSecret()); }
 	public boolean equals(String secret) {
@@ -113,6 +130,9 @@ public class Password {
 	 */
 	public boolean isExpired() { return this.expired; }
 	
+	/* This will return true if the password is new, and false if it is a temp password */
+	boolean isNew() { return this.isNew; }
+	
 	private void setCharArray(Password.CharArray charArray) { this.charArray = charArray; }
 	
 	private void setCreationDate(Date creationDate) { this.creationDate = creationDate; }
@@ -121,6 +141,8 @@ public class Password {
 	void setExpired(boolean expired) { this.expired = expired; }
 	
 	private void setHistory(String[] history) { this.history = history; }
+	
+	private void setIsNew(boolean isNew) { this.isNew = isNew; }
 	
 	/* This method is used by SecurityPolicy to set the newly created secret password. */
 	void setSecret(String secret) { this.secret = secret; }
@@ -132,7 +154,7 @@ public class Password {
 	 * rule checking. It has an added clear() method to clear out any contents and a 
 	 * getBytes() method which converts the char[] into a byte[] without the use of String.
 	 * String objects should not be used for sensitive data storage due to their immutable
-	 * nature. getBytes is required to create the encryption.
+	 * nature. getBytes() is required to apply the encryption algorithm.
 	 */
 	class CharArray implements CharSequence {
 		private byte[] bytes;
