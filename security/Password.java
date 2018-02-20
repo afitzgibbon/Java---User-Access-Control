@@ -44,12 +44,14 @@ public class Password {
 	/* This constructor is called when creating a Password for verification purposes. */
 	public Password(char[] plainText) { this(plainText, false); }
 	/*
-	 * This constructor is called when creating new passwords. The history array is initialised
-	 * with null values. It then calls the change() method to set the password for the first time.
+	 * This constructor is called when creating new passwords. The history array size is the 
+	 * predefined histoyCount minus the current password which also counts as a past password
+	 * once set and therefore history[] size is created -1. A call to change() is used to set
+	 * the password.
 	 */
 	public Password(char[] plainText, boolean isNew) {
 		this.setIsNew(isNew); // this flags whether or not to do security checking
-		this.setHistory(new String[this.getSecurityPolicy().getHistoryCount()]);
+		this.setHistory(new String[this.getSecurityPolicy().getHistoryCount() - 1]); // all values = null
 		this.change(plainText); // use change method to set the password
 	}
 	/*
@@ -69,29 +71,34 @@ public class Password {
 	 * The change method will attempt to change the password to the char[] passed in. Internally
 	 * Password uses a CharArray which is a CharSequence implementation required by SecurityPolicy.
 	 * A check is made to see if the history count has been modified which could happen with a 
-	 * SecurityPolicy update. It then pushes the current password into the history and attempts
-	 * to create the secret password via SecurityPolicy.encrypt(this).
+	 * SecurityPolicy update.It then attempts to create a secret password and if it succeeds it
+	 * puts the previous secret into the history array.
 	 * SecurityPolicy will throw a SecurityException if it encounters any conflicts. If the secret
-	 * password is successfully created the CharArray is cleared and the password creation date is
-	 * set.
+	 * password is successfully created the CharArray is cleared, the password creation date is
+	 * set, and isNew is set to false as validation is complete and the encrypted input is now the 
+	 * currently set secret password.
 	 */
 	public void change(char[] plainText) throws SecurityException {
 		this.setCharArray(new Password.CharArray(plainText));
 		
 		// if the history count has been changed, modify the array length 
 		if (this.getHistory().length != this.getSecurityPolicy().getHistoryCount());
-			this.setHistory(Arrays.copyOf(this.getHistory(), this.getSecurityPolicy().getHistoryCount()));
+			this.setHistory(Arrays.copyOf(this.getHistory(), this.getSecurityPolicy().getHistoryCount()));	
+			
+		// need to keep a copy of the current secret password to put into history
+		String previousSecret = this.getSecret();
 		
-		// put current secret into history
+		this.getSecurityPolicy().encrypt(this); // will throw SecurityException on conflicts
+		
+		// put previous secret into history
 		if (history.length != 0) {
 			for (int i = history.length - 2; i > -1; i--) {
 				history[i+1] = history[i];
 			}
-			history[0] = this.getSecret();
+			history[0] = previousSecret;
 		}
 		
-		this.getSecurityPolicy().encrypt(this);
-		// if no exceptions are thrown...
+		// clean up
 		this.getCharArray().clear();
 		this.setCreationDate(new Date());
 		this.setIsNew(false);
@@ -142,7 +149,7 @@ public class Password {
 	
 	private void setHistory(String[] history) { this.history = history; }
 	
-	private void setIsNew(boolean isNew) { this.isNew = isNew; }
+	public void setIsNew(boolean isNew) { this.isNew = isNew; }
 	
 	/* This method is used by SecurityPolicy to set the newly created secret password. */
 	void setSecret(String secret) { this.secret = secret; }
