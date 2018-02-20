@@ -94,8 +94,8 @@ public class SecurityPolicy {
 		if (password.isNew()) {
 			String[] history = password.getHistory();
 			for (int i = 0; i < history.length; i++) {
-				if (secret.equals(history[i]))
-					throw new SecurityException(WARNING + "Password exists in history");
+				if (secret.equals(history[i]) || secret.equals(password.getSecret()))
+					throw new SecurityException(WARNING + "Password in recently used list!");
 				}
 		}
 		
