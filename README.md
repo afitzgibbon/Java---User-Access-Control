@@ -13,7 +13,9 @@ This repo is intended to be a collection of classes for User &amp; Password crea
 - added: ui/console/ConsoleLogin
   - a console implementation of AbstractLogin
   
-- fixed: Bug #1 & #2. see 'Pull requests' -> 'closed' for details
+- fixed: Bug #1 & #2; see 'Pull requests' -> 'closed' for details
 
 - added: test/PasswordTest.java
-  - fixed Bug #3
+  - a test program for Password
+  - discovered new bug; see 'Pull requests' -> 'closed'
+  - fixed: Bug #3
