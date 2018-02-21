@@ -17,4 +17,4 @@ This repo is intended to be a collection of classes for User &amp; Password crea
 
 - added: test/PasswordTest.java
   - a test program for Password/SecurityPolicy
-  - discovered & fixed 'Bug #3'; see 'Pull requests' -> 'closed'
+  - discovered & fixed Bug #3; see 'Pull requests' -> 'closed'
