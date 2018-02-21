@@ -50,8 +50,6 @@ public class Password {
 	 * the password.
 	 */
 	public Password(char[] plainText, boolean isNew) {
-		//this.setIsNew(isNew); // this flags whether or not to do security checking
-		
 		// If historyCount = 0 we don't want to attempt to create a negative array which would
 		// cause a crash. In this case we create a dummy array of size 0 and this is to ensure
 		// that calls to getHistoty will not crash with NullPointerException.
@@ -99,9 +97,6 @@ public class Password {
 		this.setIsNew(isNew); // this flags whether or not to do security checking
 		this.setCharArray(new Password.CharArray(plainText));
 		
-//System.out.println("history.length=" + this.getHistory().length);
-//System.out.println("historyCount  =" + (this.getSecurityPolicy().getHistoryCount() - 1));
-		
 		// if the history count has been changed, modify the array length. if history count
 		// has been disabled the set history to a new dummy array
 		// Note: -1 is applied to historyCount to reflect the history size offset
@@ -115,10 +110,6 @@ public class Password {
 		
 		// need to keep a copy of the current secret password to put into history
 		String previousSecret = this.getSecret();
-
-//System.out.println("isNew=" + isNew());
-//System.out.println("current=" + previousSecret);
-//System.out.println("history=" + Arrays.toString(getHistory()));
 		
 		this.getSecurityPolicy().encrypt(this); // will throw SecurityException on conflicts
 		
