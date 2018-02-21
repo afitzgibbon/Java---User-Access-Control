@@ -25,6 +25,7 @@ public abstract class AbstractLogin {
 	private Password password;
 	private String username;
 	private User user;
+	private boolean isValid;
 	private int permittedAttempts;
 	
 	public AbstractLogin(LoginServer server) {
@@ -38,20 +39,20 @@ public abstract class AbstractLogin {
 			LoginResponse response = server.validate(request);
 			
 			if (response.isValidated()) {
-				this.setUser(response.getUser());
+				this.setUser(response.getUser()); // set User for subclass
+				
+				// subclass needs to take action if a password has expired
+				if (this.getUser().getPassword().isExpired())
+					this.onPasswordExpired();
+		
+				// subclass needs to take action after password validation has succeeded
+				this.onSuccess();			
 				break;
 			}
 			// login has failed, subclass needs to take action here
 			else this.onFailure();
 		}
 		while (++loginCount < this.getPermittedAttempts());
-		
-		// subclass needs to take action if a password has expired
-		if (this.getUser().getPassword().isExpired())
-			this.onPasswordExpired();
-		
-		// subclass needs to take action after password validation has succeeded
-		this.onSuccess();
 	}
 
 	protected abstract void getUserInput();
