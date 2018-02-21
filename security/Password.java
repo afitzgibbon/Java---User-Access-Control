@@ -98,7 +98,7 @@ public class Password {
 		this.setCharArray(new Password.CharArray(plainText));
 		
 		// if the history count has been changed, modify the array length. if history count
-		// has been disabled the set history to a new dummy array
+		// has been disabled then set history to a new dummy array.
 		// Note: -1 is applied to historyCount to reflect the history size offset
 		if (this.getSecurityPolicy().getHistoryCount() > 0) {
 			if (this.getHistory().length != this.getSecurityPolicy().getHistoryCount() - 1)
