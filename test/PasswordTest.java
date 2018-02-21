@@ -12,8 +12,8 @@ public class PasswordTest {
 		// Note: I'm using String.toCharArray() to get a char[] to pass to Password.
 		// In practice a String would not be used.
 		
-		// Test - turn off strict mode
-		// This test should print 'Password = one2Three!' with no encryption
+		// Test - turn off strict mode, input should not encrypt
+		// Result: one2Three!
 		// Result: pass
 		char[] in = new String("one2Three!").toCharArray();
 		Password.getSecurityPolicy().setStrict(false); // turn strict off
