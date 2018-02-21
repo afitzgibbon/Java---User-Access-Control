@@ -50,9 +50,17 @@ public class Password {
 	 * the password.
 	 */
 	public Password(char[] plainText, boolean isNew) {
-		this.setIsNew(isNew); // this flags whether or not to do security checking
-		this.setHistory(new String[this.getSecurityPolicy().getHistoryCount() - 1]); // all values = null
-		this.change(plainText); // use change method to set the password
+		//this.setIsNew(isNew); // this flags whether or not to do security checking
+		
+		// If historyCount = 0 we don't want to attempt to create a negative array which would
+		// cause a crash. In this case we create a dummy array of size 0 and this is to ensure
+		// that calls to getHistoty will not crash with NullPointerException.
+		if (this.getSecurityPolicy().getHistoryCount() > 0)
+			this.setHistory(new String[this.getSecurityPolicy().getHistoryCount() - 1]); // all values = null
+		else
+			this.setHistory(new String[0]);
+
+		this.change(plainText, isNew); // use change method to set the password
 	}
 	/*
 	 * This constructor is called when creating passwords from persistence. Once the persisted
@@ -73,20 +81,44 @@ public class Password {
 	 * A check is made to see if the history count has been modified which could happen with a 
 	 * SecurityPolicy update.It then attempts to create a secret password and if it succeeds it
 	 * puts the previous secret into the history array.
+	 *
 	 * SecurityPolicy will throw a SecurityException if it encounters any conflicts. If the secret
 	 * password is successfully created the CharArray is cleared, the password creation date is
 	 * set, and isNew is set to false as validation is complete and the encrypted input is now the 
 	 * currently set secret password.
+	 *
+	 * An existing password only has access to change(char[]) but a newly created password calls
+	 * change(char[], isNew) because newly created passwords can be for verification whereby 
+	 * isNew=false or for creation isNew=true. An existing password change is always a new password
+	 * and therefore isNew=true.
 	 */
 	public void change(char[] plainText) throws SecurityException {
+		this.change(plainText, true);
+	}
+	private void change(char[] plainText, boolean isNew) throws SecurityException {
+		this.setIsNew(isNew); // this flags whether or not to do security checking
 		this.setCharArray(new Password.CharArray(plainText));
 		
-		// if the history count has been changed, modify the array length 
-		if (this.getHistory().length != this.getSecurityPolicy().getHistoryCount());
-			this.setHistory(Arrays.copyOf(this.getHistory(), this.getSecurityPolicy().getHistoryCount()));	
-			
+//System.out.println("history.length=" + this.getHistory().length);
+//System.out.println("historyCount  =" + (this.getSecurityPolicy().getHistoryCount() - 1));
+		
+		// if the history count has been changed, modify the array length. if history count
+		// has been disabled the set history to a new dummy array
+		// Note: -1 is applied to historyCount to reflect the history size offset
+		if (this.getSecurityPolicy().getHistoryCount() > 0) {
+			if (this.getHistory().length != this.getSecurityPolicy().getHistoryCount() - 1)
+				this.setHistory(Arrays.copyOf(this.getHistory(), this.getSecurityPolicy().getHistoryCount() - 1));
+		}
+		else {
+			this.setHistory(new String[0]);
+		}
+		
 		// need to keep a copy of the current secret password to put into history
 		String previousSecret = this.getSecret();
+
+//System.out.println("isNew=" + isNew());
+//System.out.println("current=" + previousSecret);
+//System.out.println("history=" + Arrays.toString(getHistory()));
 		
 		this.getSecurityPolicy().encrypt(this); // will throw SecurityException on conflicts
 		
