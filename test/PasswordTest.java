@@ -7,7 +7,6 @@ import java.util.Date;
 import org.andy.security.Password;
 
 public class PasswordTest {
-	
 	public static void main(String[] args) {
 		// Note: I'm using String.toCharArray() to get a char[] to pass to Password.
 		// In practice a String would not be used.
