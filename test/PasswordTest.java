@@ -7,13 +7,14 @@ import java.util.Date;
 import org.andy.security.Password;
 
 public class PasswordTest {
+	
 	public static void main(String[] args) {
 		// Note: I'm using String.toCharArray() to get a char[] to pass to Password.
 		// In practice a String would not be used.
 		
-		// Test - turn off strict mode, input should not encrypt
+		// Test - turn off strict mode (should not encrypt password)
 		// Result: one2Three!
-		// Result: pass
+		// Test Passed
 		char[] in = new String("one2Three!").toCharArray();
 		Password.getSecurityPolicy().setStrict(false); // turn strict off
 		System.out.println(createPassword(in));
@@ -67,7 +68,7 @@ public class PasswordTest {
 		in = new String("one2Three!").toCharArray();
 		Password password = new Password(in, true); // set initial password to 123
 		in = new String("two3Four!").toCharArray();
-		changePassword(password, in);
+		changePassword(password, in); // change password to 234, 123 is now in history
 		
 		// Test - try to change password to 'one2Three!'
 		// Result: Warning that it is a recient password
@@ -75,14 +76,14 @@ public class PasswordTest {
 		in = new String("one2Three!").toCharArray();
 		changePassword(password, in);
 		
-		// Test - try to change password to 'one2Three!'
+		// Test - try to change password to 'two3Four!'
 		// Result: Warning that it is a recient password
 		// Test Passed
-		in = new String("one2Three!").toCharArray();
+		in = new String("two3Four!").toCharArray();
 		changePassword(password, in);
 		
 		// Test - try to change password to 'three4Five!'
-		// Result: three4Five! // encryption is disabled
+		// Result: three4Five!
 		// Test Passed
 		in = new String("three4Five!").toCharArray();
 		changePassword(password, in);
@@ -93,7 +94,7 @@ public class PasswordTest {
 		password.getSecurityPolicy().setHistoryCount(0);
 		
 		// Test - try to change password to itself 'three4Five!'
-		// Result: three4Five! // encryption is disabled
+		// Result: three4Five! 
 		// Test Passed
 		in = new String("three4Five!").toCharArray();
 		changePassword(password, in);
@@ -109,24 +110,36 @@ public class PasswordTest {
 			"two3Four!"
 		};
 		
-		String secret = "three4Five!";
+		String secret = "three4Five!";		
 		
 		// Set the creation date to 91 days ago, default expires on 90 days
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.DATE, -91); // set date offset of -91 days
 		Date date = cal.getTime();
 		
+		boolean isLocked = false;
+		
 		// Test - check expiry date
 		// Result: true
 		// Test Passed
-		password = new Password(secret, history, date);
-		System.out.println(password.isExpired());
+		password = new Password(secret, history, date, isLocked);
+		System.out.println("expired=" + password.isExpired());
 		
 		// Test - check expiry date for now
 		// Result: false
 		// Test Passed
-		password = new Password(secret, history, new Date());
-		System.out.println(password.isExpired());
+		password = new Password(secret, history, new Date(), isLocked);
+		System.out.println("expired=" + password.isExpired());
+		
+		// Test - check password lock
+		// Result: false, false, true
+		// Test Passec
+		password.equals("one");
+		System.out.println("locked=" + password.isLocked());
+		password.equals("one");
+		System.out.println("locked=" + password.isLocked());
+		password.equals("one");
+		System.out.println("locked=" + password.isLocked());
 	}
 	
 	private static void changePassword(Password password, char[] plainText) {
