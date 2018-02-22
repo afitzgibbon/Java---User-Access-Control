@@ -18,3 +18,9 @@ This repo is intended to be a collection of classes for User &amp; Password crea
 - added: test/PasswordTest.java
   - a test program for Password/SecurityPolicy
   - discovered & fixed Bug #3; see 'Pull requests' -> 'closed'
+
+- update: Password locking mechanism
+  - if in place Password will be locked by SecurityPolicy and needs an external admin to unlock
+
+- update: added enum User.Privileges
+  - enables different user privileges
