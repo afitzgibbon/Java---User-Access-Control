@@ -14,7 +14,9 @@ import org.andy.user.User;
  *    - define what happens when a login attempt fails
  * 3. onPasswordExpired()
  *    - define what happens when 'this' encounters an expired password
- * 4. onSuccess()
+ * 4. onPasswordLocked()
+ *    - define what happens when 'this' encounters a locked password
+ * 5. onSuccess()
  *    - define what happens when a login succeeds
  *
  * By default an AbstractLogin terminates after 3 incorrect login attempts but this can be 
@@ -41,16 +43,27 @@ public abstract class AbstractLogin {
 			if (response.isValidated()) {
 				this.setUser(response.getUser()); // set User for subclass
 				
-				// subclass needs to take action if a password has expired
+				// Subclass needs to take action if a password has expired
 				if (this.getUser().getPassword().isExpired())
 					this.onPasswordExpired();
 		
-				// subclass needs to take action after password validation has succeeded
+				// Subclass needs to take action after password validation has succeeded
 				this.onSuccess();			
 				break;
 			}
-			// login has failed, subclass needs to take action here
-			else this.onFailure();
+			// Login has failed, subclass needs to take action here. It will fail for
+			// two reasons, either an incorrect username/password combination or if 
+			// there is a lock on the password. If there is a lock a User object will 
+			// be returned otherwise it will be null.
+			else {
+				try {
+					if (response.getUser().getPassword().isLocked()) // throws ex if user=null
+						this.onPasswordLocked();
+				}
+				catch (NullPointerException ex) {
+					this.onFailure();
+				}
+			}
 		}
 		while (++loginCount < this.getPermittedAttempts());
 	}
@@ -58,6 +71,7 @@ public abstract class AbstractLogin {
 	protected abstract void getUserInput();
 	protected abstract void onFailure();
 	protected abstract void onPasswordExpired();
+	protected abstract void onPasswordLocked();
 	protected abstract void onSuccess();
 	
 	private Password getPassword() { return this.password; }
