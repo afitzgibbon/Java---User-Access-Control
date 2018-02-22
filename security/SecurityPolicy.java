@@ -9,7 +9,8 @@ import javax.xml.bind.DatatypeConverter;
 
 /*
  * SecurityPolicy defines the rules for Password creation and once a password is deemed
- * compliant an encryption algorithm is applied to it. It is a Singleton Object and 
+ * compliant an encryption algorithm is applied to it. It also governs password maintenance
+ * ie. if and when it expires, and if and when it is locked. It is a Singleton Object and 
  * therefore one instance governs all Password instances to ensures consistancy. By 
  * default, on first creation, it is set to strict mode which applies the following rules:
  * 
@@ -23,6 +24,7 @@ import javax.xml.bind.DatatypeConverter;
  *		Password cannot contain any white space
  *		Password will expire after 90 days
  *		Passwords cannot be changed to last 3 used (history count = 3)
+ *      Password will be locked after 3 failed attempts
  *
  * If strict mode is set to false all above rules are turned off but each can be individually 
  * tured back on or modified to create a custom policy. SecurityPolicy has a modification date
@@ -36,10 +38,12 @@ public class SecurityPolicy {
 	private static final int STRICT_HISTORY_COUNT = 3; 
 	private static final String STRICT_ALGORITHM = "SHA-256";
 	private static final int STRICT_TIME_TO_LIVE = 90;
+	private static final int STRICT_FAILURE_LIMIT = 3;
 	
 	private Date modificationDate;
 	private MessageDigest messageDigest;
 	private String algorithm;
+	private int failureLimit;
 	private int historyCount;
 	private int minLength;
 	private boolean mustContainCharacter;
@@ -122,17 +126,30 @@ public class SecurityPolicy {
 			password.setExpired(true);
 	}
 	
-	public String getEncryptionAlgorithm() { return algorithm; }
-	public int getHistoryCount() { return historyCount; }
-	public int getMinimumLength() { return minLength; }
-	private Date getModificationDate() { return modificationDate; }
-	public int getTimeToLive() { return timeToLive; }
-	public boolean mustContainCharacter() { return mustContainCharacter; }
-	public boolean mustContainDigit() { return mustContainDigit; }
-	public boolean mustContainLowerCase() { return mustContainLowerCase; }
-	public boolean mustContainNoWhitespace() { return mustContainNoWhitespace; }
-	public boolean mustContainSpecialCharacter() { return mustContainSpecialCharacter; }
-	public boolean mustContainUpperCase() { return mustContainUpperCase; }
+	/*
+	 * Password will call this method on each Password.equals() failure. If this feature
+	 * is enabled when it reaches a limit the password will be locked, disabling a user
+	 * from accessing the underlying app. A locked password will need to be unlocked by 
+	 * an administrator. To disable this feature setFailureLimit to 0. The strict default
+	 * is set to 3.
+	 */
+	public void loginAttemptCheck(Password password) {
+		if (password.getLoginAttempts() == this.getFailureLimit())
+			password.setLocked(true);
+	}
+	
+	public String getEncryptionAlgorithm() { return this.algorithm; }
+	public int getFailureLimit() { return this.failureLimit; }
+	public int getHistoryCount() { return this.historyCount; }
+	public int getMinimumLength() { return this.minLength; }
+	private Date getModificationDate() { return this.modificationDate; }
+	public int getTimeToLive() { return this.timeToLive; }
+	public boolean mustContainCharacter() { return this.mustContainCharacter; }
+	public boolean mustContainDigit() { return this.mustContainDigit; }
+	public boolean mustContainLowerCase() { return this.mustContainLowerCase; }
+	public boolean mustContainNoWhitespace() { return this.mustContainNoWhitespace; }
+	public boolean mustContainSpecialCharacter() { return this.mustContainSpecialCharacter; }
+	public boolean mustContainUpperCase() { return this.mustContainUpperCase; }
 	
 	public void setEncryptionAlgorithm(String algorithm) throws NoSuchAlgorithmException {
 		this.algorithm = algorithm;
@@ -140,6 +157,7 @@ public class SecurityPolicy {
 			return;
 		else this.messageDigest = MessageDigest.getInstance(this.algorithm); // throws ex
 	}
+	public void setFailureLimit(int failureLimit) { this.failureLimit = failureLimit; }
 	public void setHistoryCount(int historyCount) { this.historyCount = historyCount; }
 	public void setMinimumLength(int minLength) { this.minLength = minLength; }
 	public void setModified() { this.modificationDate = new Date(); }
@@ -161,6 +179,7 @@ public class SecurityPolicy {
 				this.setEncryptionAlgorithm(STRICT_ALGORITHM); // default will not throw ex
 			}
 			catch (NoSuchAlgorithmException ex) { ex.printStackTrace(); }
+			this.setFailureLimit(STRICT_FAILURE_LIMIT);
 			this.setHistoryCount(STRICT_HISTORY_COUNT);
 			this.setMinimumLength(STRICT_MIN_LENGTH);
 			this.setMustContainCharacter(true);
@@ -176,6 +195,7 @@ public class SecurityPolicy {
 				this.setEncryptionAlgorithm(null); // throws ex but discard it as strict=off is in place
 			}
 			catch (NoSuchAlgorithmException ex) {}
+			this.setFailureLimit(0);
 			this.setHistoryCount(0);
 			this.setMinimumLength(0);
 			this.setMustContainCharacter(false);

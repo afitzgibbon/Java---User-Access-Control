@@ -30,15 +30,20 @@ import java.util.Date;
  *
  * The Password contains a creationDate which, depending on SecurityPolicy configuration, will
  * cause a password to expire after a period of time. Password.isExpired() will return true in 
- * this case. Password contains a history array of previous passwords, this is to prevent reuse
- * of passwords, if configured. The history count is defined in SecurityPolicy.
+ * this case. A loginAttempts count tracks the number of failed login attempts, SecurityPolicy
+ * will monitor this and lock the password if it reaches a failure limit. A locked password 
+ * will need to be unlocked by an Admin. Password contains a history array of previous passwords,
+ * this is to prevent reuse of passwords, if configured. The history count is defined in 
+ * SecurityPolicy.
  */
 public class Password {
 	private Date creationDate;
 	private Password.CharArray charArray;
 	private String[] history;
 	private String secret;
+	private int loginAttempts;
 	private boolean expired;
+	private boolean isLocked;
 	private boolean isNew;
 	
 	/* This constructor is called when creating a Password for verification purposes. */
@@ -66,10 +71,11 @@ public class Password {
 	 * password has expired based on the creation date or if the SecurityPolicy has been updated
 	 * and requires all passwords to be recreated under the new rules.
 	 */
-	public Password(String secret, String[] history, Date creationDate) {
+	public Password(String secret, String[] history, Date creationDate, boolean isLocked) {
 		this.setSecret(secret);
 		this.setHistory(history);
 		this.setCreationDate(creationDate);
+		this.setLocked(isLocked);
 		this.getSecurityPolicy().expirationCheck(this);
 	}
 	
@@ -97,7 +103,7 @@ public class Password {
 		this.setIsNew(isNew); // this flags whether or not to do security checking
 		this.setCharArray(new Password.CharArray(plainText));
 		
-		// if the history count has been changed, modify the array length. if history count
+		// If the history count has been changed, modify the array length. If history count
 		// has been disabled then set history to a new dummy array.
 		// Note: -1 is applied to historyCount to reflect the history size offset
 		if (this.getSecurityPolicy().getHistoryCount() > 0) {
@@ -114,11 +120,11 @@ public class Password {
 		this.getSecurityPolicy().encrypt(this); // will throw SecurityException on conflicts
 		
 		// put previous secret into history
-		if (history.length != 0) {
-			for (int i = history.length - 2; i > -1; i--) {
-				history[i+1] = history[i];
+		if (this.history.length != 0) {
+			for (int i = this.history.length - 2; i > -1; i--) {
+				this.history[i+1] = this.history[i];
 			}
-			history[0] = previousSecret;
+			this.history[0] = previousSecret;
 		}
 		
 		// clean up
@@ -130,9 +136,15 @@ public class Password {
 	/* Password equality is determined by comparing the secret passwords. */
 	public boolean equals(Password password) { return equals(password.getSecret()); }
 	public boolean equals(String secret) {
-		if (this.getSecret().equals(secret))
+		if (this.getSecret().equals(secret)) {
+			this.loginAttempts = 0; // reset counter
 			return true;
-		else return false;
+		}
+		else {
+			this.loginAttempts++; // increment counter and checkin with SecurityPolicy
+			this.getSecurityPolicy().loginAttemptCheck(this);
+			return false;
+		}
 	}
 	
 	/* default access gives SecurityPolicy access to the CharArray. */
@@ -149,6 +161,8 @@ public class Password {
 		return this.history; 
 	}
 	
+	int getLoginAttempts() { return this.loginAttempts; }
+	
 	public String getSecret() { return this.secret; }
 	
 	/* A convenience method for access to the SecurityPolicy. */
@@ -160,17 +174,28 @@ public class Password {
 	 */
 	public boolean isExpired() { return this.expired; }
 	
-	/* This will return true if the password is new, and false if it is a temp password */
+	/* This will return true if the password has been locked by SecurityPolicy. */
+	public boolean isLocked() { return this.isLocked; }
+	
+	/* This will return true if the password is new, and false if it is a temp password. */
 	boolean isNew() { return this.isNew; }
 	
 	private void setCharArray(Password.CharArray charArray) { this.charArray = charArray; }
 	
 	private void setCreationDate(Date creationDate) { this.creationDate = creationDate; }
 	
-	/* This method is used by SecurityPolicy and should not be directly used. */
+	/* This method is called by SecurityPolicy to expire this Password. */
 	void setExpired(boolean expired) { this.expired = expired; }
 	
 	private void setHistory(String[] history) { this.history = history; }
+	
+	void setLocked(boolean isLocked) {
+		// If a password is unlocked reset the loginAttempts counter
+		if (!isLocked)
+			this.loginAttempts = 0;
+		
+		this.isLocked = isLocked; 
+	}
 	
 	void setIsNew(boolean isNew) { this.isNew = isNew; }
 	
