@@ -24,7 +24,7 @@ import javax.xml.bind.DatatypeConverter;
  *		Password cannot contain any white space
  *		Password will expire after 90 days
  *		Passwords cannot be changed to last 3 used (history count = 3)
- *      Password will be locked after 3 failed attempts
+ *		Password will be locked after 3 failed attempts
  *
  * If strict mode is set to false all above rules are turned off but each can be individually 
  * tured back on or modified to create a custom policy. SecurityPolicy has a modification date
