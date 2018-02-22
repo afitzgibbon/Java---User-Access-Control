@@ -172,7 +172,7 @@ public class Password {
 	
 	private void setHistory(String[] history) { this.history = history; }
 	
-	public void setIsNew(boolean isNew) { this.isNew = isNew; }
+	void setIsNew(boolean isNew) { this.isNew = isNew; }
 	
 	/* This method is used by SecurityPolicy to set the newly created secret password. */
 	void setSecret(String secret) { this.secret = secret; }
