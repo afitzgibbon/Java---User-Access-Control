@@ -47,7 +47,6 @@ public class ConsoleLogin extends AbstractLogin {
 			
 				if (Arrays.equals(plainText, plainText2)) {
 					Arrays.fill(plainText2, '\u0000'); // clear confirmation char[], Password clears the other
-					super.getUser().getPassword().setIsNew(true); // flag this password as a new password
 					super.getUser().getPassword().change(plainText); // run SecurityPolicy rules on new password
 					
 					// if no SecurityExceptions are thrown...
