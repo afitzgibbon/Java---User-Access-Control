@@ -69,6 +69,10 @@ public class ConsoleLogin extends AbstractLogin {
 		this.changePassword();
 	}
 	
+	public void onPasswordLocked() {
+		System.out.println("\nYour password has been locked. You need to contact your system administrator!");
+	}
+	
 	/*
 	 * The prupose of a login-check is to validate a user and then pass control on to an 
 	 * underlying application. This method is the entry point to such an application. It is
