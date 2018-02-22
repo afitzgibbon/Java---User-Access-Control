@@ -19,7 +19,7 @@ import java.util.Date;
  * 2. Password password = new Password(plainText, isNew)
  *    - this constructor is used when creating a password for the first time. ensure boolean
  *      value for isNew is set to true.
- * 3. Password password = new Password(secret, history, creationDate)
+ * 3. Password password = new Password(secret, history, creationDate, isLocked)
  *    - this constructor is used when loading a password from some sort of persistence.
  * 
  * The SecurityPolicy can be disabled, which may be useful for testing purposes but
